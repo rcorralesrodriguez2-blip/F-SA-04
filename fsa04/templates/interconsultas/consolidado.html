@@ -1,0 +1,64 @@
+{% extends 'interconsultas/base.html' %}
+{% block titulo %}Consolidado de interconsultas{% endblock %}
+
+{% macro tabla_mensual(titulo, filas, identificador) %}
+  <section class="panel consolidado-panel" aria-labelledby="{{ identificador }}">
+    <h3 class="h5 mb-3" id="{{ identificador }}">{{ titulo }}</h3>
+    <div class="table-responsive" tabindex="0" role="region" aria-label="{{ titulo }}: tabla con desplazamiento horizontal">
+      <table class="table table-bordered table-hover align-middle consolidado-tabla">
+        <caption class="visually-hidden">{{ titulo }} del año {{ anio }}, según la fecha de solicitud.</caption>
+        <thead class="table-light">
+          <tr>
+            <th scope="col">{{ 'Especialidades' if identificador == 'por-especialidad' else 'Tipo de especialidad' }}</th>
+            {% for mes in meses %}<th scope="col" class="text-end">{{ mes }}</th>{% endfor %}
+            <th scope="col" class="text-end">TOTAL</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for fila in filas %}
+            <tr>
+              <th scope="row">{{ fila.nombre }}</th>
+              {% for cantidad in fila.meses %}<td class="text-end">{{ cantidad }}</td>{% endfor %}
+              <td class="text-end fw-bold">{{ fila.total }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+        <tfoot class="table-light">
+          <tr>
+            <th scope="row">TOTAL</th>
+            {% for cantidad in totales.meses %}<td class="text-end fw-bold">{{ cantidad }}</td>{% endfor %}
+            <td class="text-end fw-bold">{{ totales.total }}</td>
+          </tr>
+        </tfoot>
+      </table>
+    </div>
+  </section>
+{% endmacro %}
+
+{% block contenido %}
+  <section class="panel mb-4" aria-label="Periodo del consolidado">
+    <div class="d-flex flex-wrap align-items-end justify-content-between gap-3">
+      <div>
+        <p class="mb-1">Interconsultas solicitadas en {{ anio }}</p>
+        <p class="text-secondary mb-0">Cada orden cuenta una vez, en el mes de su solicitud, incluidas las pendientes.</p>
+      </div>
+      <form method="get" action="{{ url_for('interconsultas.consolidado') }}" class="d-flex align-items-end gap-2">
+        <div>
+          <label class="form-label" for="anio">Año</label>
+          <input class="form-control" id="anio" name="anio" type="number" min="1" max="9999" value="{{ anio }}" required>
+        </div>
+        <button class="btn btn-primary" type="submit">Consultar</button>
+      </form>
+    </div>
+    <p class="mt-3 mb-0 fw-bold">Total anual: {{ totales.total }} interconsultas</p>
+  </section>
+
+  {% if not totales.total %}
+    <p class="alert alert-info" role="status">No hay interconsultas con fecha de solicitud válida para {{ anio }}.</p>
+  {% endif %}
+
+  <div class="consolidado-grid">
+    {{ tabla_mensual('Consolidado por especialidad', por_especialidad, 'por-especialidad') }}
+    {{ tabla_mensual('Consolidado por tipo de especialidad', por_tipo, 'por-tipo') }}
+  </div>
+{% endblock %}

@@ -1,0 +1,225 @@
+F-SA-04 - Estado funcional de la aplicación
+==========================================
+Última actualización: 2026-10-21
+
+Objetivo
+Registrar interconsultas, consultar la oportunidad de respuesta y guardar
+el cumplimiento validado por el usuario.
+
+Guía de documentos
+- DOCUMENTACION.txt: funciones disponibles, reglas y límites actuales.
+- CAMBIOS.txt: historial de implementaciones y ajustes verificados.
+- README.txt: ejecución, arquitectura, configuración, respaldo y pruebas.
+
+1. Funciones disponibles
+
+Nueva interconsulta (/)
+- Captura paciente, identificación, especialidad, tipo de especialidad,
+  médico responsable, fecha y hora de solicitud y de respuesta, y observaciones.
+- Paciente, identificación, especialidad, tipo, médico y solicitud son
+  obligatorios. Respuesta y observaciones son opcionales.
+- El catálogo de especialidades incluye las especialidades con nombre del
+  formato de consolidado; también reconoce sus nombres anteriores sin tildes.
+- Los textos obligatorios admiten hasta 250 caracteres; las observaciones,
+  hasta 2000.
+- La vista previa muestra el tiempo de espera al completar ambas fechas.
+  Se consulta al servidor al cambiar las fechas y no guarda registros.
+  Si no está disponible, se puede enviar el formulario para su validación.
+  El servidor valida las fechas y calcula la oportunidad definitiva al guardar.
+- El campo ¿El paciente cumplió? permite seleccionar Sí o No. La elección es
+  obligatoria cuando se registra una respuesta; no se deduce de las horas.
+- Si hay errores de validación, conserva los valores del formulario.
+- Al guardar correctamente, muestra una confirmación y abre el historial.
+- Durante el envío muestra Guardando y bloquea nuevos envíos desde el mismo
+  formulario. Al regresar con el navegador, vuelve a habilitar el botón.
+
+Historial de registros (/tabla)
+- Muestra ID, paciente, identificación, especialidad, tipo, médico,
+  solicitud, respuesta, oportunidad, cumplimiento y observaciones.
+- Muestra hasta 50 registros por página, empezando por los más recientes.
+  Siguientes 50 avanza y Más recientes vuelve al inicio de la búsqueda.
+- Buscar consulta todo el historial por paciente o identificación y recarga
+  la página. Limpiar búsqueda vuelve al historial sin filtro.
+- Muestra cuántos registros hay en la página, sin calcular un total global.
+- La búsqueda reconoce mayúsculas y minúsculas, incluidas letras con tilde;
+  no considera equivalentes letras con y sin tilde. No hay búsqueda automática
+  al escribir: pulse Buscar o Enter.
+- Distingue con colores los registros que cumplen, incumplen o están pendientes.
+- La columna Acciones permite Registrar respuesta en órdenes pendientes y
+  Editar en órdenes respondidas, abriendo los datos del mismo registro.
+- La tabla permite desplazamiento horizontal en pantallas pequeñas.
+
+
+Editar una interconsulta / registrar respuesta
+- Desde Historial, pulse Registrar respuesta en la fila pendiente. Complete
+  Fecha y hora de respuesta con el momento de la valoración y pulse Guardar cambios.
+- También puede corregir la fecha y hora de solicitud y los demás campos.
+- Se actualiza la misma interconsulta, conservando su ID; no se crea una copia.
+- El servidor recalcula la oportunidad. El cumplimiento SI/NO es la elección
+  del usuario; editar las fechas no reemplaza esa elección.
+- Puede corregir la elección desde Editar. Los valores antiguos se conservan
+  hasta que se guarden cambios, aunque fueran calculados automáticamente
+  antes de introducir la validación manual.
+- Una respuesta anterior a la solicitud se rechaza, se conservan los valores
+  del formulario y la base permanece sin cambios.
+- Cancelar regresa al historial sin guardar. Dejar la respuesta vacía conserva
+  la orden pendiente; borrar una respuesta existente la devuelve a pendiente.
+- Los indicadores reflejan las fechas actualizadas. Si cambia el mes o año
+  de la solicitud, el consolidado pasa a contarla en el periodo corregido.
+- Las especialidades y tipos históricos equivalentes se precargan con el
+  nombre actual del catálogo. Si el nombre está fuera del catálogo, se muestra
+  su valor y se debe seleccionar una opción válida antes de guardar.
+- La edición usa las mismas validaciones, protección CSRF y comprobación de
+  acceso delegada al sistema principal que las otras pantallas.
+
+Indicadores de oportunidad (/indicadores)
+- Muestra el porcentaje de incumplimiento registrado (respuestas con NO)
+  y su barra visual. Se usa la elección guardada, no el umbral de 24 horas.
+- Muestra por separado cuántas órdenes superan 24 horas de espera, como
+  dato calculado a partir de las fechas.
+- Presenta métricas generales y por tipo: especialidad quirúrgica,
+  especialidad clínica y subespecialidades. Los nombres equivalentes con
+  tildes, mayúsculas o espacios repetidos se agrupan en el mismo tipo.
+- Si hay tipos históricos desconocidos o vacíos, añade Otros tipos de
+  especialidad para que sus órdenes también aparezcan en el desglose.
+- Sin órdenes muestra Sin órdenes; si ninguna respuesta tiene SI/NO guardado,
+  muestra Sin validaciones, sin presentar un porcentaje verde de éxito.
+- Si existen respuestas sin cumplimiento, informa su cantidad para revisarlas
+  desde el historial. No modifica ni completa esas validaciones automáticamente.
+- Cada grupo muestra sumatoria de espera, total de órdenes, órdenes
+  respondidas y oportunidad promedio.
+- Los indicadores usan todos los registros; no hay filtro por fechas.
+
+
+Consolidado (/consolidado)
+- Acceso desde el menú, debajo de Indicadores.
+- Permite consultar un año; inicialmente muestra el año actual de Colombia.
+- Presenta dos tablas: por especialidad y por tipo de especialidad, con
+  columnas ENE a DIC y total anual, además de una fila TOTAL por mes.
+- Cada interconsulta cuenta una vez en el mes de su fecha de solicitud,
+  incluidas las pendientes. La fecha de respuesta no determina este conteo.
+- Los valores se calculan desde los registros guardados; no se importaron
+  las cifras del ejemplo ni sus filas vacías o repetidas.
+- Las especialidades del catálogo y los tres tipos se muestran incluso con
+  cero órdenes. Sin registros del año, se informa y los valores quedan en cero.
+- Se unifican tildes, mayúsculas y espacios de nombres históricos. Los nombres
+  históricos que no pertenecen al catálogo se conservan como filas adicionales;
+  los nombres vacíos se agrupan en 'Sin especificar', sin perder sus conteos.
+- Cada tabla muestra las mismas órdenes agrupadas de forma diferente: sus
+  totales deben coincidir y no deben sumarse entre sí.
+- Los registros históricos con fechas de solicitud no reconocidas por SQLite
+  no se incluyen en un mes. El formulario valida las fechas de registros nuevos.
+- La tabla admite desplazamiento horizontal; ambas tablas se apilan cuando
+  el ancho de pantalla no permite mostrarlas en paralelo.
+- Es una consulta de cantidades; no es una tabla de tiempos promedio ni una
+  exportación a Excel. No asigna automáticamente el tipo según la especialidad.
+
+2. Reglas de cálculo vigentes
+
+- Oportunidad: fecha de respuesta menos fecha de solicitud, en HH:MM:SS.
+  Las horas pueden superar 24.
+- Cumplimiento: el usuario selecciona SI o NO al registrar la respuesta,
+  independientemente de si la espera supera 24 horas.
+- Sin respuesta: registro pendiente, sin duración ni cumplimiento definitivo.
+- La respuesta no puede ser anterior a la solicitud.
+- Se usan fechas locales sin zona horaria.
+- Promedio: suma de las duraciones respondidas / total de órdenes del grupo,
+  incluidas las pendientes. Se redondea al segundo.
+- Incumplimiento registrado: órdenes respondidas con cumplimiento NO / total
+  de órdenes registradas x 100. Se redondea a un decimal.
+- Espera superior a 24 horas: conteo separado de duraciones mayores a 24:00:00;
+  no asigna ni cambia el cumplimiento elegido.
+- Las pendientes cuentan en el denominador y no se consideran incumplidas,
+  aunque haya transcurrido más de un día desde su solicitud.
+- Un grupo sin órdenes muestra 'Sin datos'. El cálculo interno del porcentaje
+  devuelve 0 cuando no hay registros, pero la pantalla indica Sin órdenes.
+  Si solo hay pendientes, el promedio mostrado es 00:00:00 y el bloque de
+  cumplimiento indica Sin validaciones.
+
+Ejemplo de las fórmulas actuales:
+Dos órdenes, una respondida en 30 horas y otra pendiente:
+sumatoria = 30:00:00; promedio = 15:00:00. Si el usuario marcó NO, el
+incumplimiento registrado es 50%; si marcó SI, es 0%. El conteo de esperas
+superiores a 24 horas es 1 en ambos casos.
+
+3. Datos, funcionamiento y presentación
+
+- Aplicación con FastAPI y SQLite, ejecutable de forma independiente en
+  http://127.0.0.1:5000 o como módulo dentro de otra aplicación FastAPI.
+- En modo integrado, el prefijo de las pantallas es configurable.
+- Permite utilizar el menú y la plantilla del sistema principal, configurar
+  el título y conectar la comprobación de acceso del sistema anfitrión.
+  El acceso puede delegarse a una dependencia del sistema principal.
+  No incluye autenticación propia ni integración con otros frameworks.
+- Se corrigió la dirección de arranque para permitir el inicio local.
+- ejecutar.bat prepara el entorno, instala dependencias e inicia el servidor.
+  La instalación de dependencias puede requerir conexión a Internet.
+- Los registros se conservan en database.db entre ejecuciones.
+- En modo independiente, las tablas e índices ausentes se crean al iniciar.
+  En modo integrado, su creación es explícita y se explica en README.txt.
+- Los estilos de Bootstrap se incluyen localmente para la interfaz.
+- Todas las pantallas comparten la paleta del manual de marca 2025:
+  cian, azul oscuro y grises, con la tipografía secundaria Roboto incluida
+  localmente. Se unifican menú, títulos, botones, campos y tablas, también
+  en edición y errores. Los estados Sí/No/pendiente siguen identificados
+  por texto y color. Los controles muestran un foco visible con el teclado.
+- Al cambiar de pantalla, el navegador puede reutilizar CSS y JavaScript
+  descargados previamente. Sus enlaces cambian cuando se actualizan los archivos.
+  Las páginas con registros siguen solicitándose al servidor sin caché.
+  Se retiró el archivo JavaScript de Bootstrap, que las pantallas actuales
+  no necesitan, junto con una plantilla vacía antigua y cachés regenerables.
+  Se conservan las funciones, los estilos necesarios y los registros guardados.
+  El tiempo final depende del navegador, la red y la cantidad de registros;
+  todavía no se ha medido una mejora en milisegundos en el navegador real.
+- Menú con acceso al formulario, historial, indicadores y consolidado.
+- El menú comienza con 'Control hospitalario', sin recuadro de logo encima.
+- Formularios de alta y edición adaptables al espacio disponible: una
+  columna en áreas estrechas y dos cuando hay espacio suficiente.
+- En celulares, Guardar y Cancelar ocupan el ancho disponible. Campos y
+  botones mantienen una altura mínima de 44 px y texto de entrada de 16 px.
+- El menú pasa arriba en pantallas de menos de 992 px y distribuye sus
+  enlaces según el ancho. Los textos largos se ajustan sin ampliar la página.
+- Verificado en Chrome sin interfaz con anchos de 320 a 2560 px; no se ha
+  comprobado en todos los dispositivos físicos ni navegadores.
+- El encabezado muestra el título de cada pantalla. Se retiró el subtítulo
+  repetido 'Seguimiento de oportunidad de atención'.
+- El servidor independiente utiliza Uvicorn. El modo integrado mantiene
+  las pantallas HTML y los enlaces bajo el prefijo elegido.
+- En uso local, las pantallas requieren que el servidor esté en ejecución;
+  abrir el navegador no lo inicia. El diagnóstico de conexión y el arranque
+  se explican en README.txt, sección 1.
+- Existen validaciones del servidor, protección CSRF con cookie firmada, consultas SQL
+  parametrizadas, escape HTML y páginas de error controladas.
+- La interfaz recoge y muestra información; las reglas y cálculos se ejecutan
+  en el servidor y la persistencia se encarga del almacenamiento. Las reglas
+  también se aplican al registrar desde los servicios internos del sistema.
+- Existen pruebas automatizadas en tests/test_app.py, tests/test_integration.py
+  tests/test_consolidado.py, tests/test_edicion.py, tests/test_cumplimiento.py,
+  tests/test_indicadores.py, tests/test_assets.py y tests/test_capas.py.
+  Su presencia no significa que se hayan ejecutado
+  en cada actualización documental.
+
+4. Funciones que todavía no están implementadas
+
+Esta lista describe límites del estado actual, no compromisos de desarrollo.
+- Eliminación de registros desde la interfaz.
+- Exportación a Excel o PDF.
+- Filtros por fechas, especialidad o cumplimiento en el historial.
+- Inicio de sesión, roles y auditoría de acciones por usuario.
+- Historial de versiones y aviso de edición simultánea: si se guarda una
+  interconsulta desde dos formularios abiertos, prevalece el último guardado.
+- Respaldo automático y despliegue institucional de producción.
+
+El respaldo manual y las condiciones de operación están en README.txt.
+Las mejoras futuras se incorporarán al historial cuando se implementen.
+
+5. Cómo mantener esta documentación
+
+Con cada implementación, corrección o retiro de una función:
+- Actualizar aquí el comportamiento que queda disponible.
+- Agregar una entrada en CAMBIOS.txt con fecha, cambio, motivo, archivos
+  afectados y verificación realizada.
+- Actualizar README.txt si cambian ejecución, configuración o arquitectura.
+- Separar lo implementado de lo propuesto. No atribuir fechas históricas
+  desconocidas ni registrar pruebas como ejecutadas sin evidencia.
+- No incluir datos de pacientes, secretos ni copias de la base de datos.

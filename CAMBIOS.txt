@@ -1,0 +1,390 @@
+F-SA-04 - Historial de cambios
+=============================
+Orden: entradas más recientes primero. Fechas en formato AAAA-MM-DD.
+Este historial comienza el 2026-10-15. El inventario inicial describe lo
+observado en el código; no asigna fechas de implementación anteriores.
+
+2026-10-21 | Historial acotado y respuesta inmediata durante el guardado
+Tipo: optimización de consultas, interfaz y documentación.
+Motivo: demora reportada al registrar y navegar; /tabla leía y renderizaba
+todo el historial después de cada guardado.
+Ahora: páginas de 50 registros por cursor de ID, lectura máxima de 51 filas
+devueltas por consulta y enlaces Siguientes 50 / Más recientes. Búsqueda
+global en servidor por paciente o identificación, Unicode sin distinguir
+mayúsculas; botón Buscar y contador por página. Se conserva filtro y prefijo
+del portal, sin COUNT global. La búsqueda parcial todavía puede recorrer
+muchas filas. Guardando evita nuevos envíos desde el mismo formulario,
+cancela vista previa pendiente y restaura el botón al regresar. Buscando
+indica el envío de búsqueda. No se alteraron datos ni esquema de producción.
+Archivos: fsa04/repositories.py, fsa04/services.py, fsa04/routes.py,
+fsa04/templates/interconsultas/tabla.html, fsa04/static/js/tabla.js,
+fsa04/static/js/formulario.js, tests/test_app.py, DOCUMENTACION.txt,
+README.txt y CAMBIOS.txt.
+Verificación: 62 pruebas unittest aprobadas con bases temporales; paginación
+sin pérdidas ni duplicados en 123 filas, búsqueda fuera de la primera página,
+caracteres literales, cursor inválido, prefijo proxy y guardado seguido de
+historial acotado. node --check aprobado en los dos scripts. Medición local
+TestClient con 10.000 filas sintéticas, mediana de 7 solicitudes: historial
+completo simulado 411,44 ms / 4.148.019 bytes; paginado 5,31 ms / 23.284 bytes.
+No mide red ni navegador; no se comprobó visualmente ni se diagnosticó la
+petición concreta de la captura. Sin uso de la base del proyecto en pruebas.
+
+2026-10-19 | Formularios adaptables a celulares, tabletas y computadores
+Tipo: ajuste visual y documentación.
+Motivo: adaptar los formularios al espacio disponible en diferentes equipos.
+Ahora: alta y edición comparten una cuadrícula de una columna, con dos
+columnas desde 42rem de ancho útil del panel. Campos sin anchos mínimos
+que amplíen la página, texto de entrada de 16px, observaciones con ajuste
+vertical y acciones separadas por espacio; botones a todo el ancho en móvil.
+El menú se coloca arriba bajo 992px, con enlaces distribuidos en cuadrícula;
+se ajustan márgenes y textos para áreas estrechas.
+Archivos: fsa04/static/css/app.css;
+fsa04/templates/interconsultas/formulario.html; DOCUMENTACION.txt,
+README.txt y CAMBIOS.txt.
+Verificación: 57 pruebas unittest aprobadas con bases temporales. Chrome
+sin interfaz: alta y edición en 320, 360, 390, 576, 768, 820, 992, 1024,
+1280, 1440, 1920 y 2560px (24 combinaciones), sin desbordamiento horizontal
+de página ni controles fuera del panel; controles de al menos 44px de alto.
+Capturas revisadas en 320 y 768px. Vista previa y guardado comprobados a
+320px, sin errores JavaScript. Servidor y registros sintéticos temporales;
+no se usó la base del proyecto para estas pruebas. Herramienta y capturas
+en CreatorTemp, fuera del proyecto. No se probaron dispositivos físicos
+ni todos los navegadores.
+
+2026-10-19 | Restablecimiento del acceso local al historial
+Tipo: operación local y documentación.
+Motivo: ERR_CONNECTION_REFUSED al abrir http://127.0.0.1:5000/tabla.
+Diagnóstico: no había un servidor escuchando en el puerto 5000; las
+dependencias de arranque estaban disponibles en .venv.
+Acción: se inició app.py con el Python del entorno virtual y se documentó
+cómo iniciar el servidor y diagnosticar la conexión rechazada.
+Archivos: README.txt, DOCUMENTACION.txt y CAMBIOS.txt. Sin cambios de código.
+Verificación: Uvicorn informó inicio completo y GET /tabla devolvió HTTP 200
+en el servidor local. No se imprimió el contenido del historial ni se
+realizaron escrituras de registros. No se ejecutó la suite de pruebas por
+tratarse de un arranque operativo y una actualización documental.
+
+2026-10-19 | Colores y tipografía del manual de marca en todas las pantallas
+Tipo: ajuste visual, accesibilidad y documentación.
+Motivo: revisar la interfaz existente y aplicar la identidad de los diez
+PDF del manual 2025 proporcionados por el usuario.
+Revisión: se identificaron azul y fuente genéricos, utilidades de Bootstrap
+sin adaptar y falta de una fuente local común. Se documentan los hallazgos
+y la aplicación por componentes en la sección 14 de README.txt.
+Ahora: cian #00AFEF, gris #696B6D, azul oscuro #08337B y gris claro #D9D9D9;
+Roboto local para títulos, controles y contenido, con pesos 700, 400 y 300.
+Roboto es la familia secundaria del manual; el peso de lectura 400 y los
+fondos suaves son adaptaciones funcionales. No se distribuye Avenir ni se
+añade un logotipo. Se retira la cruz tipográfica decorativa del menú.
+Menú, encabezados, botones y sus estados, campos, tarjetas, tablas y avisos
+comparten estilos bajo .fsa04-module. Se usa azul oscuro para texto y botones
+con contraste; cian para acentos. Se mantienen los estados por texto y color.
+Se refuerzan el foco visible y el tamaño de controles; se mantiene el diseño
+adaptable y el desplazamiento interno de tablas anchas.
+Archivos: fsa04/static/css/app.css; fsa04/static/fonts/Roboto-Variable.ttf
+y OFL.txt; fsa04/templates/interconsultas/base.html; README.txt,
+DOCUMENTACION.txt y CAMBIOS.txt. Sin cambios en dependencias de ejecución.
+Verificación: 57 pruebas unittest aprobadas con bases temporales. Revisión
+visual de capturas y comprobación automatizada en Chrome sin interfaz con
+Playwright: alta, edición, historial, indicadores, consolidado y error 404
+a 1440x1000 y 390x844, fuente cargada, títulos de la paleta y sin desbordamiento
+de página. También vista previa, obligatoriedad devuelta por servidor, foco,
+hover y filtro del historial; sin errores JavaScript ni solicitudes fallidas.
+Se usaron registros sintéticos y servidor temporal; no la base del proyecto.
+Las herramientas y capturas de revisión quedaron fuera del árbol del proyecto.
+No se comprobó visualmente el portal anfitrión real ni todos los navegadores.
+
+2026-10-19 | Revisión de archivos y eliminación de sobrantes
+Tipo: limpieza técnica y documentación.
+Motivo: revisar la función de cada archivo propio y retirar los que no
+participan en el funcionamiento ni en el mantenimiento del proyecto.
+Eliminados: templates/error.html de la raíz, vacío y fuera del loader activo;
+la carpeta templates/ de la raíz al quedar vacía; el recurso sin uso
+fsa04/static/vendor/bootstrap.bundle.min.js; 13 archivos .pyc regenerables
+en __pycache__/ y fsa04/__pycache__/, junto con esas carpetas de caché.
+Se conserva Bootstrap CSS porque las pantallas usan sus clases. Se mantienen
+los módulos fuente, el comando init-db, los archivos de configuración,
+las pruebas y su marcador de paquete. .venv/ se conserva como entorno de
+dependencias, sin eliminación de archivos internos administrados por pip.
+database.db se conserva; no se consultaron registros para esta revisión.
+README.txt incluye el inventario funcional de archivos conservados y explica
+que las cachés de Python pueden reaparecer durante la ejecución normal.
+Archivos ajustados: tests/test_integration.py (recursos activos esperados),
+README.txt, DOCUMENTACION.txt y CAMBIOS.txt; eliminaciones enumeradas arriba.
+Verificación: 57 pruebas unittest aprobadas con bases temporales y opción -B;
+python -B -m fsa04 --help correcto; pip check sin dependencias incompatibles.
+Se revisaron imports, rutas, herencia de plantillas y referencias de recursos,
+y se comprobó que las rutas retiradas ya no existen en el árbol propio.
+No se ejecutó ejecutar.bat ni se realizó revisión visual en navegador.
+
+2026-10-19 | Separación de presentación, negocio y persistencia
+Tipo: ajuste técnico y documentación.
+Motivo: completar y verificar las responsabilidades de las tres capas.
+Ahora: la normalización de entradas está en dominio y se aplica también al
+invocar servicios directamente. Las rutas recogen datos sin limpiarlos;
+negocio selecciona los campos admitidos, elimina espacios y valida antes
+de guardar. Los campos derivados enviados por clientes se ignoran.
+Los repositorios entregan diccionarios en lugar de objetos sqlite3.Row,
+conservando la lectura incremental de indicadores y el esquema existente.
+Se documenta la vista previa ya presente: JavaScript consulta al servidor
+para reflejar las reglas, sin calcular oportunidad ni guardar registros.
+Archivos: fsa04/domain.py, services.py, routes.py, repositories.py;
+tests/test_capas.py; README.txt, DOCUMENTACION.txt y CAMBIOS.txt.
+Verificación: 57 pruebas unittest aprobadas con bases temporales. Se cubren
+servicios sin HTTP, campos ausentes, limpieza de espacios, rechazo de campos
+derivados, contratos de persistencia y vista previa sin escrituras, con
+CSRF, autorización, prefijo y root_path. No se usó la base de producción
+ni se realizó una comprobación visual en navegador.
+
+2026-10-19 | Menos descargas al navegar entre formularios y pantallas
+Tipo: optimización técnica.
+Motivo: reducir el trabajo repetido durante la navegación solicitada por el
+usuario. Antes, no-store impedía reutilizar incluso los recursos públicos.
+Ahora: CSS/JS con huella de contenido y caché de un año para la versión
+vigente; enlaces sin versión o antigua se revalidan con no-cache y ETag.
+Las páginas y errores conservan no-store y las cabeceras de seguridad.
+Se retira la carga del bundle JavaScript de Bootstrap, sin uso en las
+pantallas actuales; su archivo continúa disponible. Son 80743 bytes de
+archivo sin compresión que ya no se solicitan en cada pantalla inicial.
+Los estilos compartidos suman 234042 bytes sin compresión reutilizables en
+visitas posteriores; estas cifras son tamaños de archivos, no tiempos de red.
+Archivos: fsa04/assets.py, __init__.py, presentation.py, security.py;
+fsa04/templates/interconsultas/base.html; tests/test_assets.py;
+DOCUMENTACION.txt, README.txt y CAMBIOS.txt.
+Verificación: 53 pruebas unittest aprobadas con bases temporales, incluidas
+caché versionada, cambio de huella por contenido, revalidación 304 sin cuerpo,
+páginas y errores sin caché, prefijo y root_path. Se midieron tamaños de
+archivos locales. No se usó database.db ni se midieron tiempos en navegador;
+no se afirma superar el tiempo de la captura. Reiniciar regenera versiones.
+
+2026-10-16 | Corrección y optimización de indicadores
+Tipo: corrección, técnico y presentación.
+Antes: nombres históricos con espacios internos repetidos podían quedar
+fuera de su grupo; tipos desconocidos solo contribuían al total general.
+Se cargaban todas las órdenes y se recorrían varias veces en listas.
+Ahora: clasificación normalizada, grupo adicional Otros tipos cuando
+corresponde, lectura incremental de SQLite y cálculo en una pasada.
+El servicio cierra generador, cursor y conexión aun si falla un dato.
+Se muestran Sin órdenes o Sin validaciones en vez de un porcentaje verde
+sin datos suficientes y se avisa de respuestas con cumplimiento ausente.
+Se conservan cumplimiento manual, promedios y denominadores definidos.
+Motivo: corregir omisiones de subtotales y reducir memoria al calcular los
+indicadores, a partir de la revisión solicitada por el usuario.
+Archivos: fsa04/domain.py, services.py, repositories.py;
+fsa04/templates/interconsultas/indicadores.html; tests/test_app.py y
+tests/test_indicadores.py; README.txt, DOCUMENTACION.txt y CAMBIOS.txt.
+Verificación: 50 pruebas unittest aprobadas con bases temporales, incluidos
+nombres históricos, tipos desconocidos, totales, iterable de una pasada,
+cierre de lectura, errores, estados vacíos y resultados del ejemplo.
+Comparación sintética con tracemalloc sobre 20000 órdenes: resultados iguales;
+pico de memoria Python de la estrategia anterior simulada 7512712 bytes y
+de la actual 17202 bytes. No es una medición del proceso completo ni de SQLite.
+No se utilizó database.db ni se realizó revisión visual en navegador.
+
+2026-10-16 | Cumplimiento validado por el usuario
+Tipo: funcionalidad y cambio de regla.
+Antes: las fechas determinaban automáticamente SI/NO según el umbral de
+24 horas. Ahora: el usuario selecciona Sí o No en altas y edición cuando
+registra una respuesta. Sin respuesta el registro sigue pendiente.
+La oportunidad continúa calculándose con las fechas; una espera superior
+a 24 horas no cambia la decisión manual. El formulario y su vista previa
+explican esa diferencia y el servidor valida la selección obligatoria.
+Los indicadores usan el NO guardado para el incumplimiento registrado y
+muestran aparte el conteo objetivo de esperas superiores a 24 horas.
+Se conservan los valores históricos y el esquema; los valores calculados
+antes de este cambio pueden revisarse desde Editar. No se migraron datos.
+Motivo: permitir que el usuario valide si el paciente cumplió o no.
+Archivos: fsa04/domain.py, services.py, repositories.py;
+fsa04/templates/interconsultas/formulario.html e indicadores.html;
+fsa04/static/js/formulario.js; tests/test_app.py, test_consolidado.py,
+test_edicion.py y test_cumplimiento.py; README.txt, DOCUMENTACION.txt,
+CAMBIOS.txt.
+Verificación: 44 pruebas unittest aprobadas con bases temporales. Cubren
+SI con 48 horas, NO con una hora, selección obligatoria y valores inválidos,
+persistencia al editar fechas, pendientes y separación de métricas.
+node --check aprobó la sintaxis de formulario.js y una comprobación con DOM
+simulado verificó que no cambia SI/NO al editar fechas y limpia el selector
+al borrar la respuesta. No se utilizó database.db ni se realizó revisión
+visual en navegador.
+
+2026-10-16 | Edición y registro de respuesta de interconsultas pendientes
+Tipo: funcionalidad.
+Cambio: columna Acciones en el historial con Registrar respuesta para
+pendientes y Editar para respondidas. Formulario precargado con Guardar cambios
+y Cancelar. Permite corregir solicitud, respuesta y demás campos del registro.
+El guardado ejecuta UPDATE sobre el mismo ID y recalcula oportunidad y
+cumplimiento; no crea una orden adicional. Se mantiene la respuesta opcional.
+Validaciones fallidas conservan el formulario sin modificar la base; registros
+inexistentes devuelven 404. Se aplican CSRF y autorización del módulo.
+Se precargan nombres históricos equivalentes y se muestran los valores fuera
+del catálogo para que el usuario seleccione una opción válida.
+Motivo: completar la respuesta de una valoración ya realizada que figuraba
+pendiente y corregir fechas desde el historial.
+Archivos: fsa04/repositories.py, services.py y routes.py;
+fsa04/templates/interconsultas/formulario.html y tabla.html;
+tests/test_edicion.py, README.txt, DOCUMENTACION.txt y CAMBIOS.txt.
+Verificación: 39 pruebas unittest aprobadas con bases temporales. Incluyen
+precarga, conservación de ID y cantidad de registros, respuesta pendiente,
+recálculo SI/NO, actualización de indicadores y consolidado, cambios de año,
+validaciones sin escritura, CSRF, ID inexistente, nombres históricos, escape
+HTML, reversión a pendiente, prefijo y autorización de rutas de edición.
+No se utilizó database.db ni se realizó revisión visual en navegador.
+Límite actual: sin control de edición simultánea ni historial de versiones.
+
+2026-10-16 | Consolidado mensual de interconsultas
+Tipo: funcionalidad y ajuste de presentación.
+Cambio: nueva opción Consolidado debajo de Indicadores; ruta /consolidado
+con selector de año y tablas por especialidad y por tipo, de ENE a DIC,
+totales mensuales y anuales y estado sin registros. Tablas adaptables con
+desplazamiento horizontal y presentación en paralelo en pantallas amplias.
+Regla confirmada por el usuario: contar cada orden en el mes de la fecha de
+solicitud, incluidas las pendientes. No se cargaron las cifras del ejemplo.
+Catálogo ampliado con las especialidades nombradas; normalización de tildes,
+mayúsculas y espacios, conservando compatibilidad con nombres anteriores.
+El consolidado conserva categorías históricas adicionales; los nombres vacíos
+se muestran como Sin especificar. Los tipos no se asignan automáticamente.
+Motivo: incorporar el formato anual solicitado como consulta del módulo.
+Archivos: fsa04/domain.py, consolidado.py, repositories.py, services.py,
+routes.py, templates/interconsultas/base.html y consolidado.html,
+static/css/app.css; tests/test_consolidado.py; README.txt,
+DOCUMENTACION.txt y CAMBIOS.txt. Las rutas de plantillas y static indicadas
+pertenecen a fsa04/. No se modificó el esquema SQLite.
+Verificación: 31 pruebas unittest aprobadas usando bases temporales. Incluyen
+conteos mensuales, total anual, suma coincidente de ambas tablas, pendientes,
+cambio de año, normalización de históricos, catálogo ampliado y guardado,
+fechas inválidas, escape HTML, periodos vacíos, año inválido y extremos,
+montaje con root_path y autorización de la nueva ruta.
+No se utilizó database.db ni se realizó revisión visual en navegador.
+
+2026-10-16 | Migración del módulo a FastAPI
+Tipo: técnico y adaptación de integración.
+Antes: módulo basado en Flask. Ahora: subaplicación FastAPI montable en el
+sistema principal, con APIRouter, Uvicorn, Settings explícito, Jinja y
+StaticFiles. Se mantienen las pantallas y las reglas de cálculo.
+SQLite deja de depender de contextos Flask: conexiones locales por operación
+y trabajo síncrono fuera del bucle asíncrono. Se conserva el esquema existente.
+CSRF usa cookie firmada con vencimiento; la sesión del portal se conserva.
+El acceso de las pantallas se delega mediante una dependencia FastAPI.
+Inicialización integrada mediante python -m fsa04 init-db --database RUTA;
+la aplicación independiente crea el esquema durante su lifespan.
+Motivo: el usuario confirma que la integración debe usar FastAPI.
+Archivos: app.py, ejecutar.bat, requirements.txt, requirements-dev.txt;
+fsa04/__init__.py, __main__.py, config.py, database.py, domain.py, repositories.py,
+services.py, routes.py, security.py, presentation.py, errors.py;
+fsa04/templates/interconsultas/base.html y formulario.html;
+tests/test_app.py, tests/test_integration.py; README.txt, DOCUMENTACION.txt
+y CAMBIOS.txt.
+Verificación: 24 pruebas unittest aprobadas con bases temporales. Cubren
+regresión funcional, SQL/HTML, CSRF, vencimiento, errores, conexiones,
+montaje, recursos, guardado y redirección 303, sesión y permisos del portal,
+plantilla compartida y enlaces del portal, errores inesperados, root_path y
+límite del cuerpo sin Content-Length. Comando init-db ejecutado y arranque
+real con Uvicorn: petición HTTP con respuesta 200 usando una base temporal.
+pip check no encontró dependencias incompatibles.
+No se utilizó database.db ni se revisó visualmente en navegador.
+Pendiente: integración y revisión visual en el proyecto principal real.
+
+2026-10-16 | Organización como módulo integrable en Flask
+Tipo: técnico y adaptación de presentación.
+Cambio: API init_app con prefijo configurable; plantillas y recursos dentro
+de fsa04/ con nombres propios; plantilla padre, menú, título y carga de
+Bootstrap configurables. CSS limitado al contenedor y JS sin globales.
+Seguridad y errores limitados al blueprint; sesión CSRF y conexión SQLite
+con claves propias. Comprobación de acceso delegable al sistema principal.
+La integración exige configuración explícita y crea el esquema mediante
+fsa04-init-db; el arranque independiente y el esquema existente se conservan.
+Se corrigió el cierre de conexiones de prueba para limpieza en Windows.
+Motivo: preparar su incorporación en otro proyecto Python sin imponer las
+rutas, plantillas, seguridad ni conexión del servidor independiente.
+Archivos: fsa04/__init__.py, database.py, routes.py, security.py, errors.py;
+plantillas trasladadas a fsa04/templates/interconsultas/ y recursos a
+fsa04/static/; tests/test_app.py, tests/test_integration.py, README.txt,
+DOCUMENTACION.txt y CAMBIOS.txt.
+Verificación: suite unittest con 19 pruebas aprobadas usando bases temporales;
+rutas independientes e integradas, guardado y redirección bajo prefijo,
+recursos locales, plantilla del portal, CSRF, aislamiento, acceso delegado y
+comando de inicialización. No se utilizó la base de datos del proyecto.
+Sin revisión visual en navegador ni integración en el sistema principal real.
+La integración directa implementada es para Flask; otros frameworks Python
+requieren adaptadores aún no implementados.
+
+2026-10-16 | Retiro del recuadro blanco del menú
+Tipo: ajuste visual.
+Cambio: se retiraron la imagen y el contenedor del logo de la plantilla
+compartida, junto con sus estilos. El menú comienza con Control hospitalario.
+Motivo: quitar el recuadro blanco señalado por el usuario.
+Archivos: templates/base.html, static/css/app.css, DOCUMENTACION.txt y
+CAMBIOS.txt.
+Verificación: cliente Flask con base temporal; formulario, historial e
+indicadores devuelven HTTP 200 y la página inexistente devuelve 404.
+En las cuatro respuestas se verificó la ausencia del bloque del logo y
+la presencia de Control hospitalario. Sin revisión visual en navegador
+ni ejecución de la suite completa. No se usó la base de datos del proyecto.
+
+2026-10-16 | Corrección de la dirección de arranque local
+Tipo: corrección.
+Antes: app.py usaba host="26.2.1" y el arranque fallaba con
+'getaddrinfo failed'. Ahora usa 127.0.0.1, puerto 5000 y debug desactivado.
+Motivo: restablecer el acceso local anunciado por ejecutar.bat.
+Archivos: app.py, README.txt, DOCUMENTACION.txt y CAMBIOS.txt.
+Verificación: ejecución de app.py con SQLite temporal y petición HTTP real
+a http://127.0.0.1:5000/; respuesta 200 y cierre del proceso de prueba.
+Se ejecutaron las 13 pruebas existentes: 8 finalizaron correctamente y
+5 registraron errores de limpieza de archivos SQLite temporales abiertos
+en Windows (WinError 32). La suite completa no queda aprobada.
+No se utilizó la base de datos del proyecto ni se comprobó en navegador.
+
+2026-10-15 | Logo institucional en el menú
+Tipo: ajuste visual.
+Cambio: se incorporó el logo de Clínica del Caribe S.A. sobre el menú de
+la plantilla compartida, con texto alternativo, fondo blanco y tamaño
+adaptable que conserva las proporciones originales de la imagen.
+Motivo: identificar la aplicación con el logo proporcionado por el usuario.
+Archivos: templates/base.html, static/css/app.css, DOCUMENTACION.txt y
+CAMBIOS.txt. Recurso utilizado: static/img/LOGO CLINICA.jpg.
+Verificación: cliente de pruebas Flask con base temporal; logo presente
+en formulario, historial, indicadores y página 404. La URL de la imagen
+devuelve HTTP 200, tipo image/jpeg y el contenido del archivo original.
+Sin comprobación visual en navegador ni ejecución de la suite completa.
+
+2026-10-15 | Documentación del estado actual y seguimiento de cambios
+Tipo: documentación.
+Cambio: se agregó una guía funcional con pantallas, reglas de cálculo,
+límites actuales y referencias a la documentación técnica. Se creó este
+historial y una instrucción para mantener ambos documentos con cada cambio.
+Motivo: facilitar una visión clara de lo disponible y de su evolución.
+Archivos: DOCUMENTACION.txt, CAMBIOS.txt, README.txt y AGENTS.md.
+Verificación: contraste de la guía con rutas, dominio, servicios, plantillas,
+scripts, configuración y esquema SQLite. Sin ejecución de pruebas en esta
+actualización documental.
+
+2026-10-15 | Retiro del subtítulo repetido del encabezado
+Tipo: ajuste visual.
+Antes: las pantallas mostraban 'Seguimiento de oportunidad de atención'
+debajo de su título.
+Ahora: el encabezado conserva únicamente el título de cada pantalla.
+Motivo: retirar el texto señalado por el usuario.
+Archivo: templates/base.html.
+Verificación: revisión de la plantilla y confirmación de ausencia del texto
+en ella. Sin comprobación visual en navegador.
+
+2026-10-15 | Inventario inicial de funciones existentes
+Tipo: línea base observada; fecha original de implementación no registrada.
+Disponible: formulario y guardado de interconsultas; validación de datos;
+cálculo de oportunidad y cumplimiento; registros pendientes; historial con
+búsqueda por paciente o identificación; indicadores generales y por tipo;
+persistencia SQLite; lanzador Windows; recursos Bootstrap locales;
+protecciones de peticiones y manejo de errores; pruebas automatizadas.
+Referencias: DOCUMENTACION.txt describe el alcance funcional y README.txt
+detalla la estructura técnica y la operación.
+Verificación: revisión del código existente, sin ejecución de pruebas para
+esta entrada. No se modificaron registros de la base de datos.
+
+Formato para próximas entradas
+------------------------------
+AAAA-MM-DD | Nombre del cambio
+Tipo: funcionalidad / corrección / ajuste visual / documentación / técnico.
+Antes y ahora: comportamiento afectado, cuando corresponda.
+Motivo: necesidad que resuelve.
+Archivos: rutas afectadas.
+Verificación: comprobación realizada y resultado; indicar lo no verificado.

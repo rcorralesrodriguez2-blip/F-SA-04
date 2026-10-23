@@ -1,0 +1,76 @@
+{% extends 'interconsultas/base.html' %}
+{% block titulo %}{% if registro_id %}Editar interconsulta #{{ registro_id }}{% else %}Nueva interconsulta{% endif %}{% endblock %}
+{% block contenido %}<section class="panel formulario-panel">
+{% if registro_id %}
+<p class="text-secondary">Actualice la solicitud o registre la fecha y hora en que se realizó la valoración. Se guardarán los cambios en esta misma interconsulta.</p>
+{% endif %}
+<form method="post" action="{{ url_for('interconsultas.actualizar', registro_id=registro_id) if registro_id else url_for('interconsultas.guardar') }}" data-vista-previa="{{ url_for('interconsultas.vista_previa') }}" class="interconsulta-form">
+{% set d = datos|default({}) %}
+<input type="hidden" name="_csrf_token" value="{{ csrf_value }}">
+<div class="col-md-6">
+<label class="form-label" for="paciente">Paciente </label>
+<input class="form-control" id="paciente" name="paciente" maxlength="250" value="{{ d.get('paciente','') }}" required>
+</div>
+<div class="col-md-6">
+<label class="form-label" for="identificacion">Identificación </label>
+<input class="form-control" id="identificacion" name="identificacion" maxlength="250" value="{{ d.get('identificacion','') }}" required>
+</div>
+<div class="col-md-6">
+<label class="form-label" for="especialidad">Especialidad </label>
+<select class="form-select" id="especialidad" name="especialidad" required>
+<option value="">Seleccione...</option>
+{% if d.get('especialidad') and d.get('especialidad') not in especialidades %}
+<option value="{{ d.get('especialidad') }}" selected>{{ d.get('especialidad') }} (seleccione una opción del catálogo)</option>
+{% endif %}
+{% for e in especialidades %}<option value="{{ e }}" {{ 'selected' if d.get('especialidad') == e else '' }}>{{ e }}</option>{% endfor %}</select>
+</div>
+<div class="col-md-6">
+<label class="form-label" for="tipo_especialidad">Tipo de especialidad </label>
+<select class="form-select" id="tipo_especialidad" name="tipo_especialidad" required>
+<option value="">Seleccione...</option>
+{% if d.get('tipo_especialidad') and d.get('tipo_especialidad') not in tipos_de_especialidades %}
+<option value="{{ d.get('tipo_especialidad') }}" selected>{{ d.get('tipo_especialidad') }} (seleccione una opción del catálogo)</option>
+{% endif %}
+{% for e in tipos_de_especialidades %}<option value="{{ e }}" {{ 'selected' if d.get('tipo_especialidad') == e else '' }}>{{ e }}</option>{% endfor %}</select>
+</div>
+<div class="col-12">
+<label class="form-label" for="medico">Médico responsable </label>
+<input class="form-control" id="medico" name="medico" maxlength="250" value="{{ d.get('medico','') }}" required>
+</div>
+<div class="col-md-6">
+<label class="form-label" for="fecha_solicitud">Fecha y hora de solicitud </label>
+<input class="form-control" type="datetime-local" step="1" id="fecha_solicitud" name="fecha_solicitud" value="{{ d.get('fecha_solicitud','') }}" required>
+</div>
+<div class="col-md-6">
+<label class="form-label" for="fecha_respuesta">Fecha y hora de respuesta</label>
+<input class="form-control" type="datetime-local" step="1" id="fecha_respuesta" name="fecha_respuesta" value="{{ d.get('fecha_respuesta','') }}">
+<div class="form-text">Déjela vacía si está pendiente.</div>
+</div>
+<div class="col-md-6">
+<label class="form-label" for="cumplimiento">¿El paciente cumplió?</label>
+<select class="form-select" id="cumplimiento" name="cumplimiento" {% if estado.cumplimiento_obligatorio %}required{% endif %} aria-describedby="ayuda-cumplimiento">
+<option value="">Seleccione...</option>
+<option value="SI" {{ 'selected' if d.get('cumplimiento') == 'SI' else '' }}>Sí</option>
+<option value="NO" {{ 'selected' if d.get('cumplimiento') == 'NO' else '' }}>No</option>
+</select>
+<div class="form-text" id="ayuda-cumplimiento">El usuario valida el cumplimiento al registrar la respuesta. Sin respuesta, queda pendiente.</div>
+</div>
+<div class="col-12">
+<label class="form-label" for="observaciones">Observaciones</label>
+<textarea class="form-control" id="observaciones" name="observaciones" maxlength="2000" rows="3">{{ d.get('observaciones','') }}</textarea>
+</div>
+<div class="col-12">
+<div id="vista-previa" class="alert alert-secondary" aria-live="polite">{{ estado.mensaje }}</div>
+</div>
+<div class="col-12 formulario-acciones">
+<button type="submit" class="btn btn-primary px-4">{{ 'Guardar cambios' if registro_id else 'Guardar interconsulta' }}</button>
+{% if registro_id %}<a class="btn btn-outline-secondary" href="{{ url_for('interconsultas.tabla') }}">Cancelar</a>{% endif %}
+</div>
+</form>
+</section>
+{% endblock %}
+
+{% block fsa04_scripts %}
+  {{ super() }}
+  <script src="{{ url_for('interconsultas.static', filename='js/formulario.js') }}" defer></script>
+{% endblock %}

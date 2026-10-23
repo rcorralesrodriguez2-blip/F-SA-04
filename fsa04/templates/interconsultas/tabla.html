@@ -1,0 +1,61 @@
+{% extends 'interconsultas/base.html' %}
+{% block titulo %}Historial de interconsultas{% endblock %}
+{% block contenido %}<section class="panel">
+<form method="get" action="{{ url_for('interconsultas.tabla') }}" data-busqueda-historial>
+<label for="buscador" class="form-label">Buscar paciente o identificación</label>
+<input id="buscador" name="q" type="search" class="form-control mb-3" placeholder="Buscar en todo el historial..." autocomplete="off" maxlength="250" value="{{ busqueda }}">
+<button type="submit" class="btn btn-primary mb-3">Buscar</button>
+{% if busqueda %}<a class="btn btn-outline-secondary mb-3" href="{{ url_for('interconsultas.tabla') }}">Limpiar búsqueda</a>{% endif %}
+</form>
+<div class="table-responsive">
+<table class="table table-hover table-bordered align-middle" id="registros">
+<thead class="table-light">
+<tr>
+<th>ID</th>
+<th>Paciente</th>
+<th>Identificación</th>
+<th>Especialidad</th>
+<th>Tipo</th>
+<th>Médico</th>
+<th>Solicitud</th>
+<th>Respuesta</th>
+<th>Oportunidad</th>
+<th>Cumplimiento</th>
+<th>Observaciones</th>
+<th>Acciones</th>
+</tr>
+</thead>
+<tbody>
+{% for r in registros %}<tr class="{{ 'fila-si' if r['cumplimiento']=='SI' else 'fila-no' if r['cumplimiento']=='NO' else 'fila-pendiente' }}" data-busqueda="{{ (r['paciente'] ~ ' ' ~ r['identificacion'])|lower }}">
+<td>{{ r['id'] }}</td>
+<td>{{ r['paciente'] }}</td>
+<td>{{ r['identificacion'] }}</td>
+<td>{{ r['especialidad'] }}</td>
+<td>{{ r['tipo_especialidad'] }}</td>
+<td>{{ r['medico'] }}</td>
+<td>{{ r['fecha_solicitud']|replace('T',' ') }}</td>
+<td>{{ (r['fecha_respuesta'] or 'Pendiente')|replace('T',' ') }}</td>
+<td>{{ r['oportunidad'] or 'Pendiente' }}</td>
+<td>
+<strong>{{ r['cumplimiento'] or 'Pendiente' }}</strong>
+</td>
+<td>{{ r['observaciones'] }}</td>
+<td><a class="btn btn-sm btn-outline-primary text-nowrap" href="{{ url_for('interconsultas.editar', registro_id=r['id']) }}">{{ 'Registrar respuesta' if not r['fecha_respuesta'] else 'Editar' }}</a></td>
+</tr>
+{% else %}<tr>
+<td colspan="12" class="text-center text-secondary">{{ 'No hay coincidencias en esta página.' if busqueda or antes else 'Todavía no hay registros.' }}</td>
+</tr>{% endfor %}</tbody>
+</table>
+</div>
+<p class="text-secondary small" id="contador">{{ registros|length }} registros en esta página. Hasta 50 por página.</p>
+<nav aria-label="Páginas del historial" class="d-flex flex-wrap gap-2">
+{% if antes %}<a class="btn btn-outline-primary" href="{{ primera_url }}">Más recientes</a>{% endif %}
+{% if siguiente_url %}<a class="btn btn-outline-primary" href="{{ siguiente_url }}">Siguientes 50</a>{% endif %}
+</nav>
+</section>
+{% endblock %}
+
+{% block fsa04_scripts %}
+  {{ super() }}
+  <script src="{{ url_for('interconsultas.static', filename='js/tabla.js') }}" defer></script>
+{% endblock %}

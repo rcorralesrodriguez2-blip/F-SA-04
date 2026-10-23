@@ -1,0 +1,8 @@
+{% extends 'interconsultas/base.html' %}
+{% block titulo %}No se pudo completar la operacion{% endblock %}
+{% block contenido %}
+<section class="panel">
+  <p role="alert">{{ mensaje }}</p>
+  <a class="btn btn-primary" href="{{ url_for('interconsultas.formulario') }}">Volver al formulario</a>
+</section>
+{% endblock %}

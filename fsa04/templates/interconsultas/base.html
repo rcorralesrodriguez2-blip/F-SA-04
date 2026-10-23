@@ -1,0 +1,39 @@
+{% extends config['FSA04_BASE_TEMPLATE'] %}
+
+{% block fsa04_styles %}
+  {% if config['FSA04_LOAD_BOOTSTRAP'] %}
+    <link rel="stylesheet" href="{{ url_for('interconsultas.static', filename='vendor/bootstrap.min.css') }}">
+  {% endif %}
+  <link rel="stylesheet" href="{{ url_for('interconsultas.static', filename='css/app.css') }}">
+{% endblock %}
+
+{% block fsa04_content %}
+  <div class="fsa04-module">
+    <div class="layout">
+      {% if config['FSA04_SHOW_SIDEBAR'] %}
+        <aside class="sidebar">
+          <h4 class="mb-1">{{ config['FSA04_TITLE'] }}</h4>
+          <small>Formato institucional F-SA-04</small>
+          <hr>
+          <nav aria-label="Interconsultas">
+            {% for endpoint, label in [('formulario', 'Nueva interconsulta'), ('tabla', 'Historial de registros'), ('indicadores', 'Indicadores'), ('consolidado', 'Consolidado')] %}
+              <a href="{{ url_for('interconsultas.' ~ endpoint) }}"
+                 class="{{ 'active' if active_endpoint == 'interconsultas.' ~ endpoint else '' }}"
+                 {% if active_endpoint == 'interconsultas.' ~ endpoint %}aria-current="page"{% endif %}>{{ label }}</a>
+            {% endfor %}
+          </nav>
+        </aside>
+      {% endif %}
+      <div class="main">
+        <header class="mb-4"><h2 class="fw-bold">{% block titulo %}{% endblock %}</h2></header>
+          {% for categoria, mensaje in mensajes %}
+            <div class="alert alert-{{ categoria }}" role="alert">{{ mensaje }}</div>
+          {% endfor %}
+        {% block contenido %}{% endblock %}
+      </div>
+    </div>
+  </div>
+{% endblock %}
+
+{% block fsa04_scripts %}
+{% endblock %}
